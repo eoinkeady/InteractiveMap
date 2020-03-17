@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!--  Static resources form Webjars -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.0.0-2/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/eoinStyle.css}"/>
+
+    <script th:src="@{/webjars/jquery/3.1.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/4.0.0-2/js/bootstrap.min.js}"></script>
+
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Earth Porn Interative Map</title>
+    <style>
+
+        #map {
+            height: 100%;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            border: 2px solid #02b6e9;
+            padding: 5px;
+        }
+
+        #content {
+            text-align: center;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 50px;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="fragments/navbar.html :: navbar">&nbsp;</div>
+<div id="map"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier/1.0.3/oms.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var postData = /*[[${message}]]*/ '';
+    var postJson = JSON.parse(postData);
+
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 3,
+            center: {lat: 40, lng: -20},
+        });
+        var iw = new google.maps.InfoWindow();
+        var oms = new OverlappingMarkerSpiderfier(map, {
+            markersWontMove: true,
+            markersWontHide: true
+        });
+        var markers = postJson.postEntityList.map(function (location, i) {
+
+            var markerData = {lat: location.lat, lng: location.lng};
+            var marker = new google.maps.Marker({
+                position: markerData
+            });
+
+            google.maps.event.addListener(marker, 'spider_click', function (e) {
+                iw.setContent('<div id="content"><b>Post Title:</b> ' + location.title + '<br><br><a href="' + location.link + '" target="_blank">View Original Post</a>' + '<br><br><img src="' + location.thumbnail + '"></div>');
+                iw.open(map, marker);
+            });
+
+            oms.addMarker(marker);
+            return marker;
+        });
+
+        var markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+
+        minClusterZoom = 14;
+        markerCluster.setMaxZoom(minClusterZoom);
+    }
+
+</script>
+<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=API_KEY=initMap&signed_in=false">
+</script>
+</body>
+</html>
